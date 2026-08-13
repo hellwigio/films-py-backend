@@ -19,6 +19,7 @@ up: net-create ## Поднять проект в Docker
 	@echo "  API:       http://localhost:8000"
 	@echo "  Swagger:   http://localhost:8000/docs"
 	@echo "  Grafana:   http://localhost:3000"
+	@echo "  Alloy:     http://localhost:12345"
 	@echo "  MongoDB:   mongodb://localhost:27017"
 	@echo ""
 	@echo "Grafana по умолчанию: admin / admin"
@@ -42,4 +43,4 @@ lint-fix: ## Ruff с автоисправлением
 	uv run ruff check --fix .
 
 mongo-clear-searches: ## Очистить поисковые запросы в MongoDB
-	docker compose exec -T app uv run python -m src.scripts.clear_popular_searches
+	docker compose exec -T app uv run python -m src.scripts.clear_search_history

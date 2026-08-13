@@ -4,7 +4,6 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.errors import PyMongoError
 
 from src.config import settings
-from src.mongo import POPULAR_SEARCHES_COLLECTION
 
 MONGO_TIMEOUT_MS = 2_000
 
@@ -22,13 +21,13 @@ async def main() -> None:
     try:
         db = client.get_default_database()
         await db.command("ping")
-        result = await db[POPULAR_SEARCHES_COLLECTION].delete_many({})
+        result = await db[settings.SEARCH_QUERIES_COLLECTION].delete_many({})
     except PyMongoError as exc:
         raise SystemExit(f"MongoDB is not available: {exc}") from exc
     finally:
         client.close()
 
-    print(f"Deleted popular searches: {result.deleted_count}")
+    print(f"Deleted search history: {result.deleted_count}")
 
 
 if __name__ == "__main__":

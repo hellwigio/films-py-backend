@@ -11,6 +11,7 @@ dependencies = [
     "opentelemetry-distro>=0.58b0",
     "opentelemetry-exporter-otlp>=1.37.0",
     "opentelemetry-instrumentation-fastapi>=0.58b0",
+    "opentelemetry-instrumentation-pymongo>=0.65b0",
     "opentelemetry-instrumentation-sqlalchemy>=0.58b0",
     "pydantic-settings>=2.14.1",
     "sqlalchemy>=2.0.50",

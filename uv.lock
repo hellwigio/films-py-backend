@@ -373,6 +373,7 @@ dependencies = [
     { name = "opentelemetry-distro" },
     { name = "opentelemetry-exporter-otlp" },
     { name = "opentelemetry-instrumentation-fastapi" },
+    { name = "opentelemetry-instrumentation-pymongo" },
     { name = "opentelemetry-instrumentation-sqlalchemy" },
     { name = "pydantic-settings" },
     { name = "sqlalchemy" },
@@ -393,6 +394,7 @@ requires-dist = [
     { name = "opentelemetry-distro", specifier = ">=0.58b0" },
     { name = "opentelemetry-exporter-otlp", specifier = ">=1.37.0" },
     { name = "opentelemetry-instrumentation-fastapi", specifier = ">=0.58b0" },
+    { name = "opentelemetry-instrumentation-pymongo", specifier = ">=0.65b0" },
     { name = "opentelemetry-instrumentation-sqlalchemy", specifier = ">=0.58b0" },
     { name = "pydantic-settings", specifier = ">=2.14.1" },
     { name = "sqlalchemy", specifier = ">=2.0.50" },
@@ -808,6 +810,20 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/30/23/b057f8196d06efdc1b50e3ff11fbc499a7d96b35c87f217eb7885542f4ea/opentelemetry_instrumentation_fastapi-0.65b0.tar.gz", hash = "sha256:10a3a95486036230413a58fe4fdf4a83fa6bba46918407e527476994bd92bd97", size = 26236, upload-time = "2026-07-16T15:26:05.954Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/fa/b0/c9b0300d33349ecc3dfd2362516eaffc44877e90970e6a52178ff953fec3/opentelemetry_instrumentation_fastapi-0.65b0-py3-none-any.whl", hash = "sha256:cda2610a0ec1b22d19886f33e4d861e9f5dbb886aeaa3a1263b47aff82c36943", size = 13261, upload-time = "2026-07-16T15:25:12.429Z" },
+]
+
+[[package]]
+name = "opentelemetry-instrumentation-pymongo"
+version = "0.65b0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-instrumentation" },
+    { name = "opentelemetry-semantic-conventions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/71/06/73315a138049c5894bafa18569fd5c9949cf4c9a972ed7151d16900af49d/opentelemetry_instrumentation_pymongo-0.65b0.tar.gz", hash = "sha256:8a43f368f7dd101622d2b5929b0c12c4099a0c4a072284b86d18b75dfee10007", size = 11312, upload-time = "2026-07-16T15:26:14.922Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/de/46/a4c918ac6b778adf967fd8b65b714a565d76c61a31be3e86a18fffd69b2c/opentelemetry_instrumentation_pymongo-0.65b0-py3-none-any.whl", hash = "sha256:c714006d3075b0d9cd1a5e8091dce139cb58ee1fbc5a23d5c8f8576e9ae14e53", size = 10638, upload-time = "2026-07-16T15:25:25.302Z" },
 ]
 
 [[package]]

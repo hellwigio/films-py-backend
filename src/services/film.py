@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.exceptions.film import FilmNotFoundError
+from src.exceptions.search import SearchParametersError
 from src.models.film import Category, Film
 from src.query_builders.film_query_builder import FilmQueryBuilder
 from src.schemas.films.film_filter import FilmFilter
@@ -15,6 +16,7 @@ class FilmService:
         self.db = db
 
     async def get_films(self, filter: FilmFilter, page: int, size: int = 10):
+        await self._validate_search_values(filter)
         query = FilmQueryBuilder(filter).build()
         count_query = select(func.count()).select_from(query.order_by(None).subquery())
         total = await self.db.scalar(count_query) or 0
@@ -32,6 +34,41 @@ class FilmService:
             "size": size,
             "pages": math.ceil(total / size) if total else 0,
         }
+
+    async def _validate_search_values(self, filter: FilmFilter) -> None:
+        if filter.genres:
+            genres_result = await self.db.execute(
+                select(Category.name).where(Category.name.in_(filter.genres))
+            )
+            existing_genres = set(genres_result.scalars().all())
+            unknown_genres = [
+                genre for genre in filter.genres if genre not in existing_genres
+            ]
+            if unknown_genres:
+                raise SearchParametersError(
+                    f"Неизвестные жанры: {', '.join(unknown_genres)}. "
+                    "Выберите жанры из search-meta."
+                )
+
+        if filter.year_from is None and filter.year_to is None:
+            return
+
+        min_year, max_year = (
+            await self.db.execute(
+                select(func.min(Film.release_year), func.max(Film.release_year))
+            )
+        ).one()
+        if min_year is None or max_year is None:
+            return
+
+        if filter.year_from is not None and filter.year_from < min_year:
+            raise SearchParametersError(
+                f"Минимальный год в базе — {min_year}. Исправьте диапазон."
+            )
+        if filter.year_to is not None and filter.year_to > max_year:
+            raise SearchParametersError(
+                f"Максимальный год в базе — {max_year}. Исправьте диапазон."
+            )
 
     async def get_search_meta(self):
         genres_result = await self.db.execute(

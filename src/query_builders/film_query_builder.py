@@ -22,8 +22,8 @@ class FilmQueryBuilder:
         if title_query:
             query = query.where(Film.title.ilike(f"%{title_query}%"))
 
-        if f.genre:
-            query = query.join(Film.categories).where(Category.name == f.genre)
+        if f.genres:
+            query = query.join(Film.categories).where(Category.name.in_(f.genres))
 
         if f.ratings:
             query = query.where(Film.rating.in_(f.ratings))
@@ -61,7 +61,7 @@ class FilmQueryBuilder:
         f = self.filter.order_by
 
         if f.startswith("-"):
-            return query.order_by(sort_map[f[1:]].desc())
+            return query.order_by(sort_map[f[1:]].desc(), Film.id.asc())
 
-        query = query.order_by(sort_map[f].asc())
+        query = query.order_by(sort_map[f].asc(), Film.id.asc())
         return query

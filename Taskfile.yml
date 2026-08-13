@@ -56,4 +56,4 @@ tasks:
   mongo:clear-searches:
     desc: "Очистить поисковые запросы в MongoDB"
     cmds:
-      - docker compose exec -T app uv run python -m src.scripts.clear_popular_searches
+      - docker compose exec -T app uv run python -m src.scripts.clear_search_history

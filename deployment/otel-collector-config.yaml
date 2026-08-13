@@ -5,8 +5,6 @@ receivers:
         endpoint: 0.0.0.0:4317
 
 exporters:
-  debug:
-    verbosity: detailed
   otlp/tempo:
     endpoint: tempo:4317
     tls:
@@ -16,4 +14,4 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      exporters: [debug, otlp/tempo]
+      exporters: [otlp/tempo]

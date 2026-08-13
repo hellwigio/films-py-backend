@@ -5,6 +5,8 @@ networks:
 volumes:
   mongo_data:
   tempo_data:
+  loki_data:
+  alloy_data:
   grafana_data:
 
 services:
@@ -37,6 +39,7 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: "${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4317}"
       OTEL_EXPORTER_OTLP_PROTOCOL: "${OTEL_EXPORTER_OTLP_PROTOCOL:-grpc}"
       OTEL_TRACES_EXPORTER: "${OTEL_TRACES_EXPORTER:-otlp}"
+      OTEL_METRICS_EXPORTER: "${OTEL_METRICS_EXPORTER:-none}"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -67,6 +70,36 @@ services:
     networks:
       - ichub_films_net
 
+  loki:
+    image: grafana/loki:3.7.0
+    container_name: films_loki
+    user: "0"
+    command: ["-config.file=/etc/loki/config.yaml"]
+    volumes:
+      - ./deployment/loki-config.yaml:/etc/loki/config.yaml:ro
+      - loki_data:/var/loki
+    networks:
+      - ichub_films_net
+
+  alloy:
+    image: grafana/alloy:v1.10.2
+    container_name: films_alloy
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    volumes:
+      - ./deployment/alloy-config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - alloy_data:/var/lib/alloy/data
+    ports:
+      - "12345:12345"
+    depends_on:
+      - loki
+    networks:
+      - ichub_films_net
+
   grafana:
     image: grafana/grafana:13.1.0
     container_name: films_grafana
@@ -77,8 +110,10 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_ADMIN_PASSWORD:-admin}"
     volumes:
       - ./deployment/grafana/provisioning/datasources/tempo.yaml:/etc/grafana/provisioning/datasources/tempo.yaml:ro
+      - ./deployment/grafana/provisioning/datasources/loki.yaml:/etc/grafana/provisioning/datasources/loki.yaml:ro
       - grafana_data:/var/lib/grafana
     depends_on:
       - tempo
+      - loki
     networks:
       - ichub_films_net
