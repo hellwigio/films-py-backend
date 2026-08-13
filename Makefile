@@ -7,10 +7,6 @@ help: ## Показать доступные команды
 
 bootstrap: build up ## С нуля после клонирования: сборка, запуск
 	@echo ""
-	@echo "Готово."
-	@echo "  API:     http://localhost:8000"
-	@echo "  Swagger: http://localhost:8000/docs"
-	@echo ""
 	@echo "Проверьте DB_URL в .env, если API не подключается к базе."
 
 net-create: ## Создать Docker-сеть ichub_films_net
@@ -18,6 +14,14 @@ net-create: ## Создать Docker-сеть ichub_films_net
 
 up: net-create ## Поднять проект в Docker
 	docker compose up -d
+	@echo ""
+	@echo "Сервисы запущены:"
+	@echo "  API:       http://localhost:8000"
+	@echo "  Swagger:   http://localhost:8000/docs"
+	@echo "  Grafana:   http://localhost:3000"
+	@echo "  MongoDB:   mongodb://localhost:27017"
+	@echo ""
+	@echo "Grafana по умолчанию: admin / admin"
 
 down: ## Остановить Docker контейнеры
 	docker compose down

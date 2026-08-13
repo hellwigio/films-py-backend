@@ -4,6 +4,8 @@ networks:
 
 volumes:
   mongo_data:
+  tempo_data:
+  grafana_data:
 
 services:
   mongo:
@@ -30,9 +32,53 @@ services:
       - "8000:8000"
     env_file:
       - .env
+    environment:
+      OTEL_SERVICE_NAME: "${OTEL_SERVICE_NAME:-films-api}"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4317}"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "${OTEL_EXPORTER_OTLP_PROTOCOL:-grpc}"
+      OTEL_TRACES_EXPORTER: "${OTEL_TRACES_EXPORTER:-otlp}"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
       - mongo
+      - otel-collector
+    networks:
+      - ichub_films_net
+
+  otel-collector:
+    image: otel/opentelemetry-collector:0.132.0
+    container_name: films_otel_collector
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./deployment/otel-collector-config.yaml:/etc/otelcol/config.yaml:ro
+    depends_on:
+      - tempo
+    networks:
+      - ichub_films_net
+
+  tempo:
+    image: grafana/tempo:2.10.7
+    container_name: films_tempo
+    user: "0"
+    command: ["-config.file=/etc/tempo/config.yaml"]
+    volumes:
+      - ./deployment/tempo-config.yaml:/etc/tempo/config.yaml:ro
+      - tempo_data:/var/tempo
+    networks:
+      - ichub_films_net
+
+  grafana:
+    image: grafana/grafana:13.1.0
+    container_name: films_grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: "${GRAFANA_ADMIN_USER:-admin}"
+      GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_ADMIN_PASSWORD:-admin}"
+    volumes:
+      - ./deployment/grafana/provisioning/datasources/tempo.yaml:/etc/grafana/provisioning/datasources/tempo.yaml:ro
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - tempo
     networks:
       - ichub_films_net
