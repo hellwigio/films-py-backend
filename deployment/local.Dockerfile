@@ -6,6 +6,7 @@ WORKDIR /app
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV PORT=8000
 
 RUN chown dev:dev /app
 
@@ -23,6 +24,4 @@ COPY --chown=dev:dev src/ /app/src/
 # Добавляем пути к бинарникам окружения в PATH
 ENV PATH="/app/.venv/bin:$PATH"
 
-EXPOSE 8000
-
-CMD ["uv", "run", "opentelemetry-instrument", "fastapi", "run", "src/main.py", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "exec uv run opentelemetry-instrument fastapi run src/main.py --host 0.0.0.0 --port \"${PORT}\""]

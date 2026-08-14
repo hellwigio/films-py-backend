@@ -16,9 +16,12 @@
 
 ```bash
 cp .env.example .env
-# укажите DB_URL и точное название группы в SEARCH_QUERIES_COLLECTION
+# укажите DB_URL, PORT и точное название группы в SEARCH_QUERIES_COLLECTION
 make bootstrap
 ```
+
+Порт API задаётся один раз через `PORT` в `.env` (по умолчанию `8000`). Он
+используется и FastAPI, и Docker Compose для публикации порта.
 
 По умолчанию используется коллекция
 `final_project_ichub_dmitriy_hellwig`. Если официальное название группы

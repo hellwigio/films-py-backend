@@ -16,8 +16,8 @@ up: net-create ## Поднять проект в Docker
 	docker compose up -d
 	@echo ""
 	@echo "Сервисы запущены:"
-	@echo "  API:       http://localhost:8000"
-	@echo "  Swagger:   http://localhost:8000/docs"
+	@PORT_VALUE=$$(sed -n 's/^PORT=//p' .env | tail -n 1); echo "  API:       http://localhost:$${PORT_VALUE:-8000}"
+	@PORT_VALUE=$$(sed -n 's/^PORT=//p' .env | tail -n 1); echo "  Swagger:   http://localhost:$${PORT_VALUE:-8000}/docs"
 	@echo "  Grafana:   http://localhost:3000"
 	@echo "  Alloy:     http://localhost:12345"
 	@echo "  MongoDB:   mongodb://localhost:27017"
