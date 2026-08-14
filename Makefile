@@ -1,4 +1,4 @@
-.PHONY: help env bootstrap net-create up down logs build lint format lint-fix mongo-clear-searches
+.PHONY: help env bootstrap net-create up down logs build lint format lint-fix mongo-clear-searches test typecheck check
 
 .DEFAULT_GOAL := help
 
@@ -43,7 +43,16 @@ lint-fix: ## Ruff с автоисправлением
 	uv run ruff check --fix .
 
 mongo-clear-searches: ## Очистить поисковые запросы в MongoDB
-	docker compose exec -T app uv run python -m src.scripts.clear_search_history
+	docker compose exec -T app uv run python -m films.scripts.clear_search_history
 
 test:
+	uv run pytest
+
+typecheck: ## Проверка типов (Pyright)
+	uv run pyright
+
+check: ## Все проверки без изменения файлов
+	uv run ruff check .
+	uv run ruff format --check .
+	uv run pyright
 	uv run pytest

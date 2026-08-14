@@ -149,7 +149,7 @@ GET /v1/films/?ratings=PG&ratings=PG-13&features=Trailers&length_from=60
   "items": [
     {
       "timestamp": "2025-05-01T15:35:00Z",
-      "search_type": "genre__years_range",
+      "search_type": "filters",
       "params": {
         "genres": ["Action", "Comedy"],
         "years_range": "2001-2010"
@@ -164,6 +164,10 @@ GET /v1/films/?ratings=PG&ratings=PG-13&features=Trailers&length_from=60
 В MongoDB каждый первый реальный запрос сохраняется отдельным документом.
 Переходы на `page=2` и далее не записываются. `results_count` берётся из
 полного SQL `COUNT` без `LIMIT` и `OFFSET`.
+
+Поиск только по рейтингу, специальным возможностям или длительности также
+сохраняется. Простое ключевое слово получает тип `keyword`, любые составные
+фильтры — тип `filters`.
 
 `GET /v1/films/popular-searches` оставлен как алиас статистики по частоте.
 
@@ -180,10 +184,11 @@ GET /v1/films/?ratings=PG&ratings=PG-13&features=Trailers&length_from=60
 
 ```bash
 uv sync
-uv run fastapi dev src/main.py
+uv run fastapi dev src/films/main.py
 uv run pytest
 uv run ruff check .
 uv run ruff format --check .
+uv run pyright
 ```
 
 SQLAlchemy и FastAPI инструментированы OpenTelemetry. SQL-запросы можно

@@ -1,6 +1,7 @@
 import pytest
 from pydantic import ValidationError
-from src.config import Settings
+
+from films.config import Settings
 
 
 def test_settings_requires_db_url() -> None:

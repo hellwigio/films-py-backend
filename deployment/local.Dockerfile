@@ -13,15 +13,17 @@ RUN chown dev:dev /app
 USER dev
 
 # Копируем файлы зависимостей
-COPY --chown=dev:dev pyproject.toml uv.lock ./
+COPY --chown=dev:dev pyproject.toml uv.lock README.md ./
 
 # Синхронизируем зависимости
-RUN uv sync --frozen --no-cache
+RUN uv sync --frozen --no-cache --no-install-project
 
 # Копируем остальной код
 COPY --chown=dev:dev src/ /app/src/
 
+RUN uv sync --frozen --no-cache
+
 # Добавляем пути к бинарникам окружения в PATH
 ENV PATH="/app/.venv/bin:$PATH"
 
-CMD ["sh", "-c", "exec uv run opentelemetry-instrument fastapi run src/main.py --host 0.0.0.0 --port \"${PORT}\""]
+CMD ["sh", "-c", "exec uv run opentelemetry-instrument fastapi run src/films/main.py --host 0.0.0.0 --port \"${PORT}\""]

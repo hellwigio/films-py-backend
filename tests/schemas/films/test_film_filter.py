@@ -1,6 +1,7 @@
 import pytest
 from pydantic import ValidationError
-from src.schemas.films.film_filter import FilmFilter
+
+from films.schemas.films.film_filter import FilmFilter
 
 
 def test_year_sets_both_range_bounds() -> None:
@@ -34,7 +35,7 @@ def test_builds_genre_years_range_event() -> None:
     film_filter = FilmFilter(genres=["Action"], year_from=2001, year_to=2010)
 
     assert film_filter.search_event() == (
-        "genre__years_range",
+        "filters",
         {"genre": "Action", "years_range": "2001-2010"},
     )
 
@@ -59,7 +60,7 @@ def test_combines_keyword_genres_and_years_in_search_event() -> None:
     )
 
     assert film_filter.search_event() == (
-        "keyword",
+        "filters",
         {
             "keyword": "matrix",
             "genres": ["Action", "Comedy"],
@@ -77,6 +78,23 @@ def test_normalizes_multiple_genres() -> None:
 
     assert film_filter.genres == ["Action", "Comedy"]
     assert film_filter.search_event() == (
-        "genre__years_range",
+        "filters",
         {"genres": ["Action", "Comedy"], "years_range": "2006"},
+    )
+
+
+def test_rating_feature_and_length_only_search_is_recorded() -> None:
+    film_filter = FilmFilter(
+        ratings=[" PG ", "PG"],
+        features=[" Trailers "],
+        length_from=60,
+    )
+
+    assert film_filter.search_event() == (
+        "filters",
+        {
+            "ratings": ["PG"],
+            "features": ["Trailers"],
+            "length_from": "60",
+        },
     )

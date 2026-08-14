@@ -1,8 +1,7 @@
 import asyncio
 from datetime import datetime
 
-from src.services import search_history as search_history_module
-from src.services.search_history import SearchHistoryService
+from films.services.search_history import SearchHistoryService
 
 
 class FakeCollection:
@@ -21,16 +20,11 @@ class FakeDatabase:
         return self.collection
 
 
-def test_record_stores_required_document_fields(monkeypatch) -> None:
+def test_record_stores_required_document_fields() -> None:
     collection = FakeCollection()
-    monkeypatch.setattr(
-        search_history_module,
-        "get_mongo_db",
-        lambda: FakeDatabase(collection),
-    )
 
     asyncio.run(
-        SearchHistoryService().record(
+        SearchHistoryService(FakeDatabase(collection)).record(
             search_type="keyword",
             params={"keyword": "matrix"},
             results_count=3,
