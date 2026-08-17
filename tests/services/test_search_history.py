@@ -44,14 +44,16 @@ def test_record_stores_required_document_fields() -> None:
 def test_frequency_pipeline_groups_unique_queries() -> None:
     pipeline = SearchHistoryService._pipeline("frequency", 5)
 
-    assert pipeline[1]["$group"]["frequency"] == {"$sum": 1}
-    assert pipeline[2] == {"$sort": {"frequency": -1, "timestamp": -1}}
-    assert pipeline[3] == {"$limit": 5}
+    expression = pipeline[1]["$set"]["search_type"]
+    assert "$reduce" in expression
+    assert pipeline[2]["$group"]["frequency"] == {"$sum": 1}
+    assert pipeline[3] == {"$sort": {"frequency": -1, "timestamp": -1}}
+    assert pipeline[4] == {"$limit": 5}
 
 
 def test_latest_pipeline_sorts_unique_queries_by_timestamp() -> None:
     pipeline = SearchHistoryService._pipeline("latest", 5)
 
     assert pipeline[0] == {"$sort": {"timestamp": -1}}
-    assert pipeline[2] == {"$sort": {"timestamp": -1}}
-    assert pipeline[3] == {"$limit": 5}
+    assert pipeline[3] == {"$sort": {"timestamp": -1}}
+    assert pipeline[4] == {"$limit": 5}

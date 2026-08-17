@@ -82,7 +82,12 @@ class FilmService:
                     "Выберите жанры из search-meta."
                 )
 
-        if filter.year_from is None and filter.year_to is None:
+        requested_years = [
+            year
+            for year in (filter.year, filter.year_from, filter.year_to)
+            if year is not None
+        ]
+        if not requested_years:
             return
 
         min_year, max_year = (
@@ -93,11 +98,11 @@ class FilmService:
         if min_year is None or max_year is None:
             return
 
-        if filter.year_from is not None and filter.year_from < min_year:
+        if min(requested_years) < min_year:
             raise SearchParametersError(
                 f"Минимальный год в базе — {min_year}. Исправьте диапазон."
             )
-        if filter.year_to is not None and filter.year_to > max_year:
+        if max(requested_years) > max_year:
             raise SearchParametersError(
                 f"Максимальный год в базе — {max_year}. Исправьте диапазон."
             )

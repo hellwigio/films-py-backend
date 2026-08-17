@@ -115,7 +115,16 @@ def test_keyword_search_records_full_count_only_on_first_page(services) -> None:
     film_service, history = services
     film_filter = asyncio.run(get_film_filter(keyword="  The   Matrix  "))
 
-    result = asyncio.run(get_films(film_service, history, film_filter, page=1, size=10))
+    result = asyncio.run(
+        get_films(
+            film_service,
+            history,
+            film_filter,
+            page=1,
+            size=10,
+            track_search=True,
+        )
+    )
 
     assert result["total"] == 23
     assert history.records == [
@@ -126,8 +135,26 @@ def test_keyword_search_records_full_count_only_on_first_page(services) -> None:
         }
     ]
 
-    asyncio.run(get_films(film_service, history, film_filter, page=2, size=10))
+    asyncio.run(
+        get_films(
+            film_service,
+            history,
+            film_filter,
+            page=2,
+            size=10,
+            track_search=True,
+        )
+    )
     assert len(history.records) == 1
+
+
+def test_search_is_not_recorded_without_explicit_tracking(services) -> None:
+    film_service, history = services
+    film_filter = asyncio.run(get_film_filter(keyword="matrix"))
+
+    asyncio.run(get_films(film_service, history, film_filter, page=1, size=10))
+
+    assert history.records == []
 
 
 def test_genre_year_search_is_recorded(services) -> None:
@@ -140,9 +167,18 @@ def test_genre_year_search_is_recorded(services) -> None:
         )
     )
 
-    asyncio.run(get_films(film_service, history, film_filter, page=1, size=10))
+    asyncio.run(
+        get_films(
+            film_service,
+            history,
+            film_filter,
+            page=1,
+            size=10,
+            track_search=True,
+        )
+    )
 
-    assert history.records[0]["search_type"] == "filters"
+    assert history.records[0]["search_type"] == "genre__years_range"
     assert history.records[0]["params"] == {
         "genres": ["Action", "Comedy"],
         "years_range": "2001-2010",
@@ -160,10 +196,19 @@ def test_combined_filters_are_recorded_without_reset(services) -> None:
         )
     )
 
-    asyncio.run(get_films(film_service, history, film_filter, page=1, size=10))
+    asyncio.run(
+        get_films(
+            film_service,
+            history,
+            film_filter,
+            page=1,
+            size=10,
+            track_search=True,
+        )
+    )
 
     assert history.records[0] == {
-        "search_type": "filters",
+        "search_type": "keyword__genre__years_range",
         "params": {
             "keyword": "academy",
             "genres": ["Action", "Comedy"],
@@ -232,7 +277,10 @@ def test_http_layer_parses_repeated_filters_and_serializes_response() -> None:
     app.dependency_overrides[get_search_history_service] = override_history_service
 
     async def make_request():
-        return await asgi_get("/v1/films/", "genre=Comedy&genre=Action&size=12")
+        return await asgi_get(
+            "/v1/films/",
+            "genre=Comedy&genre=Action&size=12&track_search=true",
+        )
 
     try:
         status, body = asyncio.run(make_request())
@@ -242,7 +290,7 @@ def test_http_layer_parses_repeated_filters_and_serializes_response() -> None:
     assert status == 200
     assert body["size"] == 12
     assert film_service.last_filter.genres == ["Action", "Comedy"]
-    assert history.records[0]["search_type"] == "filters"
+    assert history.records[0]["search_type"] == "genre"
 
 
 def test_http_layer_returns_422_for_incomplete_year_range() -> None:

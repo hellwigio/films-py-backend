@@ -71,9 +71,69 @@ class SearchHistoryService:
             raise SearchHistoryUnavailableError from exc
 
     @staticmethod
+    def _search_type_expression() -> dict[str, Any]:
+        """Собрать канонический тип из фактически сохранённых параметров."""
+
+        def has_param(name: str) -> dict[str, Any]:
+            return {"$ne": [{"$type": f"$params.{name}"}, "missing"]}
+
+        has_years_range = has_param("years_range")
+        years_range_has_separator = {
+            "$regexMatch": {
+                "input": {"$ifNull": ["$params.years_range", ""]},
+                "regex": "-",
+            }
+        }
+        components = [
+            (has_param("keyword"), "keyword"),
+            ({"$or": [has_param("genre"), has_param("genres")]}, "genre"),
+            (
+                {
+                    "$or": [
+                        has_param("year"),
+                        {
+                            "$and": [
+                                has_years_range,
+                                {"$not": [years_range_has_separator]},
+                            ]
+                        },
+                    ]
+                },
+                "year",
+            ),
+            (
+                {"$and": [has_years_range, years_range_has_separator]},
+                "years_range",
+            ),
+            (has_param("ratings"), "rating"),
+            (has_param("features"), "feature"),
+            (has_param("length_from"), "length_from"),
+            (has_param("length_to"), "length_to"),
+        ]
+        parts = [
+            {"$cond": [condition, [component], []]}
+            for condition, component in components
+        ]
+
+        return {
+            "$reduce": {
+                "input": {"$concatArrays": parts},
+                "initialValue": "",
+                "in": {
+                    "$cond": [
+                        {"$eq": ["$$value", ""]},
+                        "$$this",
+                        {"$concat": ["$$value", "__", "$$this"]},
+                    ]
+                },
+            }
+        }
+
+    @staticmethod
     def _pipeline(order: StatisticsOrder, limit: int) -> list[dict[str, Any]]:
         pipeline: list[dict[str, Any]] = [
             {"$sort": {"timestamp": -1}},
+            {"$set": {"search_type": SearchHistoryService._search_type_expression()}},
             {
                 "$group": {
                     "_id": {

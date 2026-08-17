@@ -37,3 +37,13 @@ def test_query_builder_defaults_to_title_then_id_sort() -> None:
     sql = str(FilmQueryBuilder(FilmFilter()).build())
 
     assert "ORDER BY film.title ASC, film.film_id ASC" in sql
+
+
+def test_query_builder_unites_exact_year_and_range() -> None:
+    sql = str(
+        FilmQueryBuilder(FilmFilter(year=2005, year_from=1990, year_to=1995)).build()
+    )
+
+    assert "film.release_year >=" in sql
+    assert "film.release_year <=" in sql
+    assert "OR film.release_year =" in sql

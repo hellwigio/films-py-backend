@@ -4,11 +4,27 @@ from pydantic import ValidationError
 from films.schemas.films.film_filter import FilmFilter
 
 
-def test_year_sets_both_range_bounds() -> None:
+def test_exact_year_remains_independent_from_range() -> None:
     film_filter = FilmFilter(genres=["Drama"], year=2006)
 
-    assert film_filter.year_from == 2006
-    assert film_filter.year_to == 2006
+    assert film_filter.year_from is None
+    assert film_filter.year_to is None
+    assert film_filter.search_event() == (
+        "genre__year",
+        {"genre": "Drama", "year": "2006"},
+    )
+
+
+def test_exact_year_does_not_replace_explicit_range() -> None:
+    film_filter = FilmFilter(year=2005, year_from=1990, year_to=1995)
+
+    assert film_filter.year == 2005
+    assert film_filter.year_from == 1990
+    assert film_filter.year_to == 1995
+    assert film_filter.search_event() == (
+        "year__years_range",
+        {"year": "2005", "years_range": "1990-1995"},
+    )
 
 
 def test_rejects_invalid_year_range() -> None:
@@ -35,8 +51,17 @@ def test_builds_genre_years_range_event() -> None:
     film_filter = FilmFilter(genres=["Action"], year_from=2001, year_to=2010)
 
     assert film_filter.search_event() == (
-        "filters",
+        "genre__years_range",
         {"genre": "Action", "years_range": "2001-2010"},
+    )
+
+
+def test_equal_range_remains_a_range() -> None:
+    film_filter = FilmFilter(year_from=2005, year_to=2005)
+
+    assert film_filter.search_event() == (
+        "years_range",
+        {"years_range": "2005-2005"},
     )
 
 
@@ -60,7 +85,7 @@ def test_combines_keyword_genres_and_years_in_search_event() -> None:
     )
 
     assert film_filter.search_event() == (
-        "filters",
+        "keyword__genre__years_range__rating",
         {
             "keyword": "matrix",
             "genres": ["Action", "Comedy"],
@@ -78,8 +103,8 @@ def test_normalizes_multiple_genres() -> None:
 
     assert film_filter.genres == ["Action", "Comedy"]
     assert film_filter.search_event() == (
-        "filters",
-        {"genres": ["Action", "Comedy"], "years_range": "2006"},
+        "genre__year",
+        {"genres": ["Action", "Comedy"], "year": "2006"},
     )
 
 
@@ -91,7 +116,7 @@ def test_rating_feature_and_length_only_search_is_recorded() -> None:
     )
 
     assert film_filter.search_event() == (
-        "filters",
+        "rating__feature__length_from",
         {
             "ratings": ["PG"],
             "features": ["Trailers"],

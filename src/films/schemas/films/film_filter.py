@@ -51,10 +51,6 @@ class FilmFilter(BaseModel):
         if self.keyword and self.title:
             raise ValueError("Укажите только один параметр: keyword или title")
 
-        if self.year is not None:
-            self.year_from = self.year
-            self.year_to = self.year
-
         if (self.year_from is None) != (self.year_to is None):
             raise ValueError("Укажите обе границы: year_from и year_to")
 
@@ -80,13 +76,14 @@ class FilmFilter(BaseModel):
         """Построить каноническое событие для истории поиска."""
 
         keyword = self.keyword or self.title
-        has_years = self.year_from is not None and self.year_to is not None
+        has_years_range = self.year_from is not None and self.year_to is not None
         has_non_keyword_filters = any(
             (
                 self.genres,
                 self.ratings,
                 self.features,
-                has_years,
+                self.year is not None,
+                has_years_range,
                 self.length_from is not None,
                 self.length_to is not None,
             )
@@ -104,12 +101,11 @@ class FilmFilter(BaseModel):
             else:
                 params["genres"] = self.genres
 
-        if has_years:
-            years_range = (
-                str(self.year_from)
-                if self.year_from == self.year_to
-                else f"{self.year_from}-{self.year_to}"
-            )
+        if self.year is not None:
+            params["year"] = str(self.year)
+
+        if has_years_range:
+            years_range = f"{self.year_from}-{self.year_to}"
             params["years_range"] = years_range
 
         if self.ratings:
@@ -121,7 +117,23 @@ class FilmFilter(BaseModel):
         if self.length_to is not None:
             params["length_to"] = str(self.length_to)
 
-        search_type = (
-            "keyword" if keyword and not has_non_keyword_filters else "filters"
-        )
+        type_parts: list[str] = []
+        if keyword:
+            type_parts.append("keyword")
+        if self.genres:
+            type_parts.append("genre")
+        if self.year is not None:
+            type_parts.append("year")
+        if has_years_range:
+            type_parts.append("years_range")
+        if self.ratings:
+            type_parts.append("rating")
+        if self.features:
+            type_parts.append("feature")
+        if self.length_from is not None:
+            type_parts.append("length_from")
+        if self.length_to is not None:
+            type_parts.append("length_to")
+
+        search_type: SearchType = "__".join(type_parts)
         return search_type, params

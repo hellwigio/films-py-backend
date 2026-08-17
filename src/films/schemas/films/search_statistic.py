@@ -5,8 +5,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-# ``genre__years_range`` remains readable for documents written by older releases.
-SearchType = Literal["keyword", "filters", "genre__years_range"]
+type SearchType = str
 StatisticsOrder = Literal["frequency", "latest"]
 
 

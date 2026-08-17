@@ -1,6 +1,6 @@
 """Построение SQLAlchemy-запросов для поиска фильмов."""
 
-from sqlalchemy import Select, or_, select
+from sqlalchemy import Select, and_, or_, select
 
 from films.models.film import Category, Film
 from films.schemas.films.film_filter import FilmFilter
@@ -45,11 +45,22 @@ class FilmQueryBuilder:
                 )
             )
 
-        if f.year_from is not None:
-            query = query.where(Film.release_year >= f.year_from)
+        year_range = None
+        if f.year_from is not None and f.year_to is not None:
+            year_range = and_(
+                Film.release_year >= f.year_from,
+                Film.release_year <= f.year_to,
+            )
 
-        if f.year_to is not None:
-            query = query.where(Film.release_year <= f.year_to)
+        has_distinct_exact_year = f.year is not None and (
+            f.year_from != f.year or f.year_to != f.year
+        )
+        if year_range is not None and has_distinct_exact_year:
+            query = query.where(or_(year_range, Film.release_year == f.year))
+        elif f.year is not None:
+            query = query.where(Film.release_year == f.year)
+        elif year_range is not None:
+            query = query.where(year_range)
 
         if f.length_from is not None:
             query = query.where(Film.length >= f.length_from)

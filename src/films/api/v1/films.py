@@ -80,13 +80,14 @@ async def get_films(
     filter: Annotated[FilmFilter, Depends(get_film_filter)],
     page: Annotated[int, Query(ge=1)] = 1,
     size: FilmPageSize = FilmPageSize.TEN,
+    track_search: bool = False,
 ):
-    """Вернуть страницу фильмов и записать первый поисковый запрос."""
+    """Вернуть страницу фильмов и при необходимости записать поиск."""
 
     result = await service.get_films(filter, page=page, size=int(size))
 
     search_event = filter.search_event()
-    if search_event and page == 1:
+    if track_search and search_event and page == 1:
         search_type, params = search_event
         await search_history_service.record(
             search_type=search_type,
