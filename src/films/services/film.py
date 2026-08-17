@@ -108,19 +108,24 @@ class FilmService:
         genres_result = await self.db.execute(
             select(Category.name).order_by(Category.name)
         )
+
         ratings_result = await self.db.execute(
             select(Film.rating)
             .where(Film.rating.is_not(None))
             .distinct()
             .order_by(Film.rating)
         )
+
         years_result = await self.db.execute(
             select(func.min(Film.release_year), func.max(Film.release_year))
         )
+
         min_release_year, max_release_year = years_result.one()
+
         length_result = await self.db.execute(
             select(func.min(Film.length), func.max(Film.length))
         )
+
         min_length, max_length = length_result.one()
 
         features_result = await self.db.execute(
@@ -128,7 +133,9 @@ class FilmService:
             .where(Film.special_features.is_not(None))
             .where(Film.special_features != "")
         )
+
         all_features: set[str] = set()
+
         for row in features_result.scalars().all():
             if not row:
                 continue
@@ -150,6 +157,7 @@ class FilmService:
             "min_length": min_length,
             "max_length": max_length,
         }
+
         return response
 
     async def get_film(self, film_id: int) -> Film:
@@ -160,7 +168,9 @@ class FilmService:
             .where(Film.id == film_id)
             .options(selectinload(Film.categories))
         )
+
         res = await self.db.execute(query)
+
         film = res.scalar_one_or_none()
 
         if film is None:
