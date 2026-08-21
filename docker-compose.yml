@@ -10,6 +10,7 @@ volumes:
   grafana_data:
 
 services:
+  # MongoDB хранит данные приложения о фильмах.
   mongo:
     image: mongo:7
     container_name: films_mongo
@@ -20,6 +21,7 @@ services:
     networks:
       - ichub_films_net
 
+  # Основной API-сервис приложения, обрабатывающий запросы к каталогу фильмов.
   app:
     build:
       context: .
@@ -49,6 +51,7 @@ services:
     networks:
       - ichub_films_net
 
+  # OpenTelemetry Collector принимает трейсы приложения и передаёт их в Tempo.
   otel-collector:
     image: otel/opentelemetry-collector:0.132.0
     container_name: films_otel_collector
@@ -60,6 +63,7 @@ services:
     networks:
       - ichub_films_net
 
+  # Tempo хранит распределённые трейсы для анализа запросов и производительности.
   tempo:
     image: grafana/tempo:2.10.7
     container_name: films_tempo
@@ -71,6 +75,7 @@ services:
     networks:
       - ichub_films_net
 
+  # Loki хранит и индексирует логи контейнеров приложения.
   loki:
     image: grafana/loki:3.7.0
     container_name: films_loki
@@ -82,6 +87,7 @@ services:
     networks:
       - ichub_films_net
 
+  # Grafana Alloy собирает логи Docker-контейнеров и отправляет их в Loki.
   alloy:
     image: grafana/alloy:v1.10.2
     container_name: films_alloy
@@ -101,6 +107,7 @@ services:
     networks:
       - ichub_films_net
 
+  # Grafana предоставляет веб-интерфейс для просмотра логов из Loki и трейсов из Tempo.
   grafana:
     image: grafana/grafana:13.1.0
     container_name: films_grafana
